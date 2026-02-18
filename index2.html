@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionário de Mapeamento de Exposição Cambial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary-color: #1e3a8a;
+        --primary-light: #3b82f6;
+        --secondary-color: #64748b;
+        --bg-color: #f8fafc;
+        --card-bg: #ffffff;
+        --text-color: #1e293b;
+        --border-color: #e2e8f0;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding-bottom: 40px; }
+      .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+      
+      /* Header */
+      header { background-color: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 30px; text-align: center; border-top: 5px solid var(--primary-color); }
+      h1 { color: var(--primary-color); font-size: 1.8rem; margin-bottom: 10px; }
+      .subtitle { color: var(--secondary-color); font-size: 1rem; }
+
+      /* Progress Bar */
+      .progress-container { margin-bottom: 30px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); padding: 10px 0; }
+      .progress-bar-bg { background-color: #e2e8f0; border-radius: 10px; height: 10px; width: 100%; overflow: hidden; }
+      .progress-bar-fill { background-color: var(--primary-light); height: 100%; width: 0%; transition: width 0.3s ease; }
+      .progress-text { text-align: right; font-size: 0.85rem; color: var(--secondary-color); margin-top: 5px; }
+
+      /* Form Sections */
+      .form-section { background-color: var(--card-bg); border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 20px; display: none; animation: fadeIn 0.5s ease; }
+      .form-section.active { display: block; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      h2 { color: var(--primary-color); font-size: 1.4rem; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+      h3 { color: var(--text-color); font-size: 1.1rem; margin-top: 25px; margin-bottom: 15px; font-weight: 600; }
+
+      /* Inputs */
+      .form-group { margin-bottom: 20px; position: relative; }
+      label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-color); }
+      .required::after { content: ' *'; color: #ef4444; }
+      input[type='text'], input[type='number'], input[type='email'], input[type='date'], input[type='tel'], select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem; transition: border-color 0.3s, box-shadow 0.3s; }
+      input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+      /* Radios/Checkbox */
+      .options-group { display: flex; flex-direction: column; gap: 10px; }
+      .radio-label, .checkbox-label { display: flex; align-items: center; cursor: pointer; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; transition: background-color 0.2s; }
+      .radio-label:hover, .checkbox-label:hover { background-color: #f1f5f9; }
+      input[type='radio'], input[type='checkbox'] { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--primary-color); }
+
+      /* Tables */
+      .dynamic-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+      .dynamic-table th, .dynamic-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+      .dynamic-table th { background-color: #f1f5f9; font-weight: 600; color: var(--primary-color); }
+
+      /* Buttons */
+      .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+      button { padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 1rem; }
+      .btn-prev { background-color: #e2e8f0; color: var(--text-color); border: none; }
+      .btn-prev:hover { background-color: #cbd5e1; }
+      .btn-next, .btn-submit { background-color: var(--primary-color); color: white; border: none; }
+      .btn-next:hover, .btn-submit:hover { background-color: #1e40af; }
+
+      /* Tooltips & Logic */
+      .tooltip { display: inline-block; margin-left: 8px; position: relative; cursor: help; color: var(--primary-light); }
+      .tooltip::before { content: 'ℹ️'; font-size: 0.9rem; }
+      .tooltip:hover::after { content: attr(data-tip); position: absolute; left: 50%; bottom: 125%; transform: translateX(-50%); background-color: #334155; color: white; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; white-space: pre-wrap; width: 250px; z-index: 10; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+      .conditional-field { display: none; margin-left: 20px; border-left: 3px solid var(--primary-light); padding-left: 20px; margin-top: 15px; }
+
+      /* Summary */
+      .summary-card { background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+      .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
+      .summary-label { color: var(--secondary-color); }
+      .summary-value { font-weight: 600; color: var(--primary-color); }
+
+      /* Responsive */
+      @media (max-width: 768px) { .form-section { padding: 25px; } h1 { font-size: 1.5rem; } .dynamic-table { display: block; overflow-x: auto; } }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Questionário de Mapeamento de Exposição Cambial</h1>
+        <p class="subtitle">Diagnóstico de Risco e Estratégia para Importadores</p>
+      </header>
+
+      <div class="progress-container">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+        <div class="progress-text" id="progressText">0% Concluído</div>
+      </div>
+
+      <form action="https://formsubmit.co/mesa.cambio@sirinvestimentos.com" method="POST">
+        <input type="hidden" name="_subject" value="Novo Diagnóstico de Câmbio - Cliente">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+
+        <div class="form-section active" id="section1">
+          <h2>1. Informações Cadastrais e Corporativas</h2>
+          <div class="form-group">
+            <label for="razaoSocial" class="required">Razão Social</label>
+            <input type="text" id="razaoSocial" name="razaoSocial" required>
+          </div>
+          <div class="form-group">
+            <label for="cnpj" class="required">CNPJ</label>
+            <input type="text" id="cnpj" name="cnpj" placeholder="XX.XXX.XXX/XXXX-XX" oninput="maskCNPJ(this)" required>
+          </div>
+          <div class="form-group">
+            <label class="required">Segmento de Atuação</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="segmento" value="Industria" required> Indústria</label>
+              <label class="radio-label"><input type="radio" name="segmento" value="Comercio"> Comércio</label>
+              <label class="radio-label"><input type="radio" name="segmento" value="Outro"> Outro</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="faturamento" class="required">Faturamento Anual (R$)</label>
+            <input type="text" id="faturamento" name="faturamento" placeholder="R$ 0,00" oninput="formatCurrencyBRL(this)" required>
+          </div>
+          <div class="form-group">
+            <label for="tempoAtuacao">Tempo de Atuação (anos)</label>
+            <input type="number" id="tempoAtuacao" name="tempoAtuacao" min="0">
+          </div>
+          <div class="form-group">
+            <label>Possui política formal de gestão de riscos?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="politicaRisco" value="Sim"> Sim</label>
+              <label class="radio-label"><input type="radio" name="politicaRisco" value="Nao"> Não</label>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" disabled>Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(1)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section2">
+          <h2>2. Caracterização da Exposição Cambial</h2>
+          <h3>2.1 Perfil das Importações</h3>
+          <div class="form-group">
+            <label for="totalImport12m" class="required">Valor Total de Importações (Últimos 12 meses - USD)</label>
+            <input type="text" id="totalImport12m" name="totalImport12m" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateMonthlyAvg();" required>
+          </div>
+          <div class="form-group">
+            <label for="mediaMensalUSD">Média Mensal Estimada (USD)</label>
+            <input type="text" id="mediaMensalUSD" name="mediaMensalUSD" readonly style="background-color: #f1f5f9">
+          </div>
+          <div class="form-group">
+            <label>Apresenta Sazonalidade?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="sazonalidade" value="Sim" onclick="toggleConditional('sazonalContainer', true)"> Sim</label>
+              <label class="radio-label"><input type="radio" name="sazonalidade" value="Nao" onclick="toggleConditional('sazonalContainer', false)"> Não</label>
+            </div>
+            <div id="sazonalContainer" class="conditional-field">
+              <label>Meses de Pico:</label>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
+                <label><input type="checkbox" name="mesSazonal" value="Jan"> Jan</label>
+                <label><input type="checkbox" name="mesSazonal" value="Fev"> Fev</label>
+                <label><input type="checkbox" name="mesSazonal" value="Mar"> Mar</label>
+                <label><input type="checkbox" name="mesSazonal" value="Abr"> Abr</label>
+                <label><input type="checkbox" name="mesSazonal" value="Mai"> Mai</label>
+                <label><input type="checkbox" name="mesSazonal" value="Jun"> Jun</label>
+                <label><input type="checkbox" name="mesSazonal" value="Jul"> Jul</label>
+                <label><input type="checkbox" name="mesSazonal" value="Ago"> Ago</label>
+                <label><input type="checkbox" name="mesSazonal" value="Set"> Set</label>
+                <label><input type="checkbox" name="mesSazonal" value="Out"> Out</label>
+                <label><input type="checkbox" name="mesSazonal" value="Nov"> Nov</label>
+                <label><input type="checkbox" name="mesSazonal" value="Dez"> Dez</label>
+              </div>
+            </div>
+          </div>
+          <h3>2.2 Estrutura de Pagamentos</h3>
+          <div class="form-group">
+            <label for="prazoMedio">Prazo Médio de Pagamento</label>
+            <select id="prazoMedio" name="prazoMedio">
+              <option value="">Selecione...</option>
+              <option value="avista">À vista</option>
+              <option value="30d">30 dias</option>
+              <option value="60d">60 dias</option>
+              <option value="90d">90 dias</option>
+              <option value="120d">120 dias</option>
+              <option value="180d+">180 dias ou mais</option>
+            </select>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(2)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(2)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section3">
+          <h2>3. Projeção de Exposição (Próximos 12 Meses)</h2>
+          <p style="font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 20px">Preencha os valores estimados de pagamentos em Dólar (USD).</p>
+          <table class="dynamic-table" id="projectionTable">
+            <thead>
+              <tr><th>Período</th><th>Pagamentos (USD)</th><th>Observações</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mês 1</td>
+                <td><input type="text" name="proj_mes1_valor" class="proj-input" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateTotalProj();"></td>
+                <td><input type="text" name="proj_mes1_obs"></td>
+              </tr>
+              <tr>
+                <td>Mês 2</td>
+                <td><input type="text" name="proj_mes2_valor" class="proj-input" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateTotalProj();"></td>
+                <td><input type="text" name="proj_mes2_obs"></td>
+              </tr>
+              <tr>
+                <td>Mês 3</td>
+                <td><input type="text" name="proj_mes3_valor" class="proj-input" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateTotalProj();"></td>
+                <td><input type="text" name="proj_mes3_obs"></td>
+              </tr>
+              <tr>
+                <td>Mês 4-6</td>
+                <td><input type="text" name="proj_mes4_6_valor" class="proj-input" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateTotalProj();"></td>
+                <td><input type="text" name="proj_mes4_6_obs"></td>
+              </tr>
+              <tr>
+                <td>Mês 7-12</td>
+                <td><input type="text" name="proj_mes7_12_valor" class="proj-input" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateTotalProj();"></td>
+                <td><input type="text" name="proj_mes7_12_obs"></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="background-color: #eef2ff">
+                <td style="font-weight: bold">TOTAL ANUAL</td>
+                <td style="font-weight: bold; color: var(--primary-color)" id="totalProjDisplay">US$ 0.00</td>
+                <td><input type="hidden" name="total_projecao_anual" id="totalProjInput"></td>
+              </tr>
+            </tfoot>
+          </table>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(3)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(3)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section4">
+          <h2>4. Receitas e Hedge Natural <span class="tooltip" data-tip="Hedge Natural ocorre quando a empresa possui receitas na mesma moeda das despesas, reduzindo naturalmente o risco."></span></h2>
+          <div class="form-group">
+            <label>Possui receitas em moeda estrangeira?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="receitaExt" value="Sim" onclick="toggleConditional('receitaContainer', true)"> Sim</label>
+              <label class="radio-label"><input type="radio" name="receitaExt" value="Nao" onclick="toggleConditional('receitaContainer', false)"> Não</label>
+            </div>
+            <div id="receitaContainer" class="conditional-field">
+              <div class="form-group">
+                <label>Valor Médio Mensal (USD)</label>
+                <input type="text" id="receitaMensal" name="receita_mensal_usd" placeholder="US$ 0.00" oninput="formatCurrencyUSD(this); calculateNetExposure();">
+              </div>
+              <div class="form-group">
+                <label>% das Receitas Totais</label>
+                <input type="number" name="percentual_receita_total" placeholder="%" min="0" max="100">
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed var(--primary-light);">
+            <label style="color: var(--primary-color)">Exposição Líquida Mensal Estimada:</label>
+            <input type="text" id="netExposureDisplay" name="exposicao_liquida_calculada" readonly style="font-weight: bold; color: var(--text-color); border: none; background: transparent; font-size: 1.2rem;" value="US$ 0.00">
+            <small style="display: block; color: var(--secondary-color)">Cálculo: (Importação Média - Receita Média)</small>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(4)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(4)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section5">
+          <h2>5. Impacto Financeiro e Sensibilidade</h2>
+          <div class="form-group">
+            <label>Margem Líquida Aproximada (%)</label>
+            <input type="number" name="margemLiquida" placeholder="%" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label>Qual variação cambial compromete a rentabilidade?</label>
+            <select name="sensibilidade">
+              <option value="">Selecione...</option>
+              <option value="5">5%</option>
+              <option value="10">10%</option>
+              <option value="15">15%</option>
+              <option value="20">20%</option>
+              <option value="25+">Acima de 20%</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Já teve prejuízos materiais devido ao câmbio?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="prejuizoPassado" value="Sim"> Sim</label>
+              <label class="radio-label"><input type="radio" name="prejuizoPassado" value="Nao"> Não</label>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(5)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(5)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section6">
+          <h2>6. Experiência e Práticas Atuais de Hedge</h2>
+          <div class="form-group">
+            <label>Já realizou hedge cambial anteriormente?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="jaFezHedge" value="Sim" onclick="toggleHedgeExp(true)"> Sim</label>
+              <label class="radio-label"><input type="radio" name="jaFezHedge" value="Nao" onclick="toggleHedgeExp(false)"> Não</label>
+            </div>
+          </div>
+          <div id="hedgeExperienceYes" class="conditional-field">
+            <div class="form-group">
+              <label>Instrumentos Utilizados:</label>
+              <div class="options-group">
+                <label class="checkbox-label"><input type="checkbox" name="instrumentos" value="NDF"> NDF <span class="tooltip" data-tip="Non-Deliverable Forward"></span></label>
+                <label class="checkbox-label"><input type="checkbox" name="instrumentos" value="Futuro"> Futuro (BM&F)</label>
+                <label class="checkbox-label"><input type="checkbox" name="instrumentos" value="Opcoes"> Opções <span class="tooltip" data-tip="Direito de comprar ou vender moeda"></span></label>
+                <label class="checkbox-label"><input type="checkbox" name="instrumentos" value="Swap"> Swap</label>
+              </div>
+            </div>
+          </div>
+          <div id="hedgeExperienceNo" class="conditional-field">
+            <div class="form-group">
+              <label>Principais Motivos:</label>
+              <div class="options-group">
+                <label class="checkbox-label"><input type="checkbox" name="motivoNao" value="Desconhecimento"> Desconhecimento</label>
+                <label class="checkbox-label"><input type="checkbox" name="motivoNao" value="Custo"> Custo Elevado</label>
+                <label class="checkbox-label"><input type="checkbox" name="motivoNao" value="Complexidade"> Complexidade</label>
+                <label class="checkbox-label"><input type="checkbox" name="motivoNao" value="SemNecessidade"> Não vê necessidade</label>
+              </div>
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(6)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(6)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section7">
+          <h2>7. Objetivos e Apetite a Risco</h2>
+          <div class="form-group">
+            <label>Principais Objetivos (Multipla Escolha)</label>
+            <div class="options-group">
+              <label class="checkbox-label"><input type="checkbox" name="objetivos" value="Previsibilidade"> Garantir previsibilidade de custos</label>
+              <label class="checkbox-label"><input type="checkbox" name="objetivos" value="Margem"> Proteger margem de lucro</label>
+              <label class="checkbox-label"><input type="checkbox" name="objetivos" value="Caixa"> Estabilizar fluxo de caixa</label>
+              <label class="checkbox-label"><input type="checkbox" name="objetivos" value="Competitividade"> Melhorar competitividade de preços</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Perfil de Risco da Empresa</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="perfilRisco" value="Conservador"> <strong>Conservador:</strong> Prioriza proteção total.</label>
+              <label class="radio-label"><input type="radio" name="perfilRisco" value="Moderado"> <strong>Moderado:</strong> Busca equilíbrio.</label>
+              <label class="radio-label"><input type="radio" name="perfilRisco" value="Arrojado"> <strong>Arrojado:</strong> Aceita exposição parcial.</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Horizonte de Proteção Desejado</label>
+            <select name="horizonte">
+              <option value="1-3">Curto Prazo (1-3 meses)</option>
+              <option value="3-6">Médio Prazo (3-6 meses)</option>
+              <option value="6-12">Longo Prazo (6-12 meses)</option>
+              <option value="12+">Anual (> 12 meses)</option>
+            </select>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(7)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(7)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section8">
+          <h2>8. Informações Operacionais</h2>
+          <div class="form-group">
+            <label for="responsavelNome" class="required">Nome do Responsável (Decisão Câmbio)</label>
+            <input type="text" id="responsavelNome" name="nome_responsavel" required>
+          </div>
+          <div class="form-group">
+            <label for="responsavelEmail" class="required">E-mail Corporativo</label>
+            <input type="email" id="responsavelEmail" name="email_responsavel" required>
+          </div>
+          <div class="form-group">
+            <label>Utiliza ERP?</label>
+            <div class="options-group">
+              <label class="radio-label"><input type="radio" name="temERP" value="Sim" onclick="toggleConditional('erpName', true)"> Sim</label>
+              <label class="radio-label"><input type="radio" name="temERP" value="Nao" onclick="toggleConditional('erpName', false)"> Não</label>
+            </div>
+            <div id="erpName" class="conditional-field">
+              <label>Qual sistema?</label>
+              <input type="text" name="nomeERP">
+            </div>
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(8)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(8)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section9">
+          <h2>9. Cenários e Expectativas</h2>
+          <div class="form-group">
+            <label>Expectativa para o Câmbio (6 meses)</label>
+            <select name="expectativaCambio">
+              <option value="Alta">Alta (Desvalorização do Real)</option>
+              <option value="Estavel">Estável</option>
+              <option value="Queda">Queda (Valorização do Real)</option>
+              <option value="SemOpiniao">Não tenho opinião formada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Taxa de Orçamento (R$/USD)</label>
+            <input type="text" name="taxa_orcamento" placeholder="R$ 0,00" oninput="formatCurrencyBRL(this)">
+          </div>
+          <div class="form-group">
+            <label>Taxa Inviável para o Negócio (R$/USD)</label>
+            <input type="text" name="taxa_inviavel" placeholder="R$ 0,00" oninput="formatCurrencyBRL(this)" style="border-color: #fca5a5">
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(9)">Anterior</button>
+            <button type="button" class="btn-next" onclick="nextSection(9)">Próximo</button>
+          </div>
+        </div>
+
+        <div class="form-section" id="section10">
+          <h2>10. Finalização e Resumo</h2>
+          <div class="summary-card">
+            <h3>Resumo do Diagnóstico</h3>
+            <div class="summary-item"><span class="summary-label">Exposição Anual Estimada:</span><span class="summary-value" id="sumTotalExp">US$ 0.00</span></div>
+            <div class="summary-item"><span class="summary-label">Exposição Líquida Mensal:</span><span class="summary-value" id="sumNetExp">US$ 0.00</span></div>
+            <div class="summary-item"><span class="summary-label">Perfil de Risco:</span><span class="summary-value" id="sumRiskProfile">-</span></div>
+            <div class="summary-item"><span class="summary-label">Já realizou Hedge:</span><span class="summary-value" id="sumHedgeExp">Não informado</span></div>
+          </div>
+          <div class="form-group">
+            <label>Serviços de Interesse Adicional:</label>
+            <div class="options-group">
+              <label class="checkbox-label"><input type="checkbox" name="servicos" value="Relatorios"> Relatórios de Mercado</label>
+              <label class="checkbox-label"><input type="checkbox" name="servicos" value="Treinamento"> Treinamento em Derivativos</label>
+              <label class="checkbox-label"><input type="checkbox" name="servicos" value="Accounting"> Consultoria Hedge Accounting</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="obsFinais">Observações Finais</label>
+            <textarea id="obsFinais" name="observacoes_finais" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label" style="background-color: #eff6ff; border-color: var(--primary-light)">
+              <input type="checkbox" name="termo_aceite" required>
+              <strong>Declaro que as informações fornecidas são verdadeiras e completas para fins de análise de crédito e risco.</strong>
+            </label>
+          </div>
+          <div class="form-group">
+            <label>Data:</label>
+            <input type="date" id="dateToday" name="data_preenchimento" readonly style="background-color: #f1f5f9">
+          </div>
+          <div class="nav-buttons">
+            <button type="button" class="btn-prev" onclick="prevSection(10)">Anterior</button>
+            <button type="button" class="btn-submit" onclick="submitForm()">Enviar Questionário</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      // Data de Hoje
+      document.getElementById('dateToday').valueAsDate = new Date();
+
+      // Navegação
+      let currentSection = 1;
+      const totalSections = 10;
+
+      function showSection(n) {
+        document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById('section' + n).classList.add('active');
+        updateProgressBar();
+        window.scrollTo(0, 0);
+      }
+
+      function nextSection(n) {
+        if (validateSection(n)) {
+          if (n < totalSections) {
+            currentSection = n + 1;
+            showSection(currentSection);
+            updateSummary();
+          }
+        } else {
+          alert('Por favor, preencha os campos obrigatórios marcados com *');
+        }
+      }
+
+      function prevSection(n) {
+        if (n > 1) {
+          currentSection = n - 1;
+          showSection(currentSection);
+        }
+      }
+
+      function validateSection(n) {
+        const section = document.getElementById('section' + n);
+        const requiredInputs = section.querySelectorAll('[required]');
+        let valid = true;
+        requiredInputs.forEach(input => {
+          if (!input.value || (input.type === 'radio' && !section.querySelector(`input[name="${input.name}"]:checked`))) {
+            input.style.borderColor = '#ef4444';
+            valid = false;
+          } else {
+            input.style.borderColor = '#e2e8f0';
+          }
+        });
+        return valid;
+      }
+
+      function updateProgressBar() {
+        const progress = (currentSection / totalSections) * 100;
+        document.getElementById('progressBar').style.width = progress + '%';
+        document.getElementById('progressText').innerText = Math.round(progress) + '% Concluído';
+      }
+
+      // Lógica Condicional
+      function toggleConditional(id, show) {
+        document.getElementById(id).style.display = show ? 'block' : 'none';
+      }
+      function toggleHedgeExp(show) {
+        document.getElementById('hedgeExperienceYes').style.display = show ? 'block' : 'none';
+        document.getElementById('hedgeExperienceNo').style.display = show ? 'none' : 'block';
+      }
+
+      // Formatação
+      function maskCNPJ(v) {
+        v.value = v.value.replace(/\D/g, '').replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2').slice(0, 18);
+      }
+      function formatCurrencyBRL(input) {
+        let value = input.value.replace(/\D/g, '');
+        input.value = (value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      }
+      function formatCurrencyUSD(input) {
+        let value = input.value.replace(/\D/g, '');
+        input.value = (value / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      }
+      function parseCurrencyUSD(str) {
+        return parseFloat(str.replace(/[^0-9.-]+/g, '')) || 0;
+      }
+
+      // Cálculos
+      function calculateMonthlyAvg() {
+        const total = parseCurrencyUSD(document.getElementById('totalImport12m').value);
+        document.getElementById('mediaMensalUSD').value = (total / 12).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      }
+      function calculateTotalProj() {
+        let total = 0;
+        document.querySelectorAll('.proj-input').forEach(input => { total += parseCurrencyUSD(input.value); });
+        const formattedTotal = total.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+        
+        // Atualiza o texto visível
+        document.getElementById('totalProjDisplay').innerText = formattedTotal;
+        // Atualiza o campo oculto para enviar no e-mail
+        document.getElementById('totalProjInput').value = formattedTotal;
+      }
+      function calculateNetExposure() {
+        const importAvg = parseCurrencyUSD(document.getElementById('mediaMensalUSD').value);
+        const exportAvg = parseCurrencyUSD(document.getElementById('receitaMensal').value);
+        document.getElementById('netExposureDisplay').value = (importAvg - exportAvg).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      }
+
+      // Resumo
+      function updateSummary() {
+        const totalProj = document.getElementById('totalProjDisplay').innerText;
+        document.getElementById('sumTotalExp').innerText = totalProj !== 'US$ 0.00' ? totalProj : document.getElementById('totalImport12m').value;
+        document.getElementById('sumNetExp').innerText = document.getElementById('netExposureDisplay').value;
+        const profile = document.querySelector('input[name="perfilRisco"]:checked');
+        if (profile) document.getElementById('sumRiskProfile').innerText = profile.value;
+        const hedgeHist = document.querySelector('input[name="jaFezHedge"]:checked');
+        if (hedgeHist) document.getElementById('sumHedgeExp').innerText = hedgeHist.value;
+      }
+
+      // Envio Real do Formulário
+      function submitForm() {
+        if (confirm('Deseja confirmar o envio das informações para a Mesa de Câmbio?')) {
+          // Comando que realmente envia o formulário
+          document.querySelector("form").submit();
+        }
+      }
+    </script>
+  </body>
+</html>
